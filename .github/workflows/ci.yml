@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version:
           - "3.7"
           - "3.8"
@@ -26,16 +26,30 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+        # see https://github.com/fortran-lang/setup-fortran:
         toolchain:
           - { compiler: gcc, version: 13 }
           - { compiler: intel, version: "2025.0" }
           - { compiler: intel-classic, version: "2021.10" }
         include:
-          - os: ubuntu-latest
-            toolchain: { compiler: gcc, version: 12 }
+          # ubuntu 24.04 with architecture 'x64' has no py37, use ubuntu 22.04 instead.
+          - os: ubuntu-22.04
+            python-version: "3.7"
         exclude:
+          - os: ubuntu-latest
+            python-version: "3.7"
+          # macos 14.7.2 with architecture 'arm64' has no py37, excluding it.
           - os: macos-latest
-            toolchain: { compiler: intel, version: "2023.2" }
+            python-version: "3.7"
+          # `ifx` compiler not supported on macos, excluding it.
+          - os: macos-latest
+            toolchain: { compiler: intel, version: "2025.0" }
+          # meson fails to detect `icx` C compiler (https://github.com/mesonbuild/meson/issues/14089)
+          # remove the following once meson==1.8 is released.
+          - os: windows-latest
+            toolchain: { compiler: intel, version: "2025.0" }
+          - os: windows-latest
+            toolchain: { compiler: intel-classic, version: "2021.10" }
 
     steps:
       - uses: actions/checkout@v4
@@ -56,8 +70,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install the project
-        run: uv sync --no-editable --all-extras
+        run: uv pip install ".[testing]"
 
+      # adding `--no-editable` to avoid https://github.com/astral-sh/uv/issues/10214
       - name: Run tests
         continue-on-error: true
         run: |

@@ -31,7 +31,6 @@ docs = ["sphinx-mdolab-theme>=1.4.2"]
 
 [dependency-groups]
 lint = ["ruff>=0.9.7"]
-typing = ["mypy>=1.4.1"]
 
 [tool.ruff]
 line-length = 120
