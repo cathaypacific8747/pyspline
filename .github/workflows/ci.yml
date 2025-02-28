@@ -70,7 +70,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install the project
-        run: uv pip install ".[testing]"
+        run: uv venv && uv pip install ".[testing]"
 
       # adding `--no-editable` to avoid https://github.com/astral-sh/uv/issues/10214
       - name: Run tests
