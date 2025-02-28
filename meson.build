@@ -7,6 +7,7 @@ project(
   default_options: [
     'buildtype=debugoptimized',
     'b_ndebug=if-release',
+    'c_std=c99'
   ]
 )
 
@@ -40,6 +41,8 @@ fortranobject_dep = declare_dependency(
 )
 
 f2py = find_program('f2py')
+f2py_version = run_command([py3, '-m', 'numpy.f2py', '-v'], check: true).stdout().strip()
+message(f'f2py version: @f2py_version@')
 
 cc_args = cc.get_supported_arguments(
   '-O2',

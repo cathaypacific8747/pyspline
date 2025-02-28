@@ -32,13 +32,17 @@ jobs:
           - { compiler: intel, version: "2025.0" }
           - { compiler: intel-classic, version: "2021.10" }
         include:
-          # ubuntu 24.04 with architecture 'x64' has no py37, use ubuntu 22.04 instead.
+          # ubuntu 24.04 with architecture 'x64' does not have py37, using ubuntu 22.04 instead.
           - os: ubuntu-22.04
             python-version: "3.7"
+            toolchain:
+              - { compiler: gcc, version: 13 }
+              - { compiler: intel, version: "2025.0" }
+              - { compiler: intel-classic, version: "2021.10" }
         exclude:
           - os: ubuntu-latest
             python-version: "3.7"
-          # macos 14.7.2 with architecture 'arm64' has no py37, excluding it.
+          # macos 14.7.2 with architecture 'arm64' does not have py37, excluding it.
           - os: macos-latest
             python-version: "3.7"
           # `ifx` compiler not supported on macos, excluding it.

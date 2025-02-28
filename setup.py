@@ -2,7 +2,7 @@
 # This file is kept here for compatibility with the legacy system:
 # - setup `config/config.mk`
 # - run `make`
-# - instead of `pip install .` do `pip3 install setuptools` and `python3 setup.py install`.
+# - instead of `pip3 install .` do `pip3 install setuptools` and `python3 setup.py install`.
 
 import os
 import re
