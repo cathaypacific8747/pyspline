@@ -11,8 +11,14 @@ doc/_build/*
 *.mod
 *.so
 *.out
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
 *.egg-info
 config.mk
 config/config.mk
 src/f2py/libspline-f2pywrappers2.f90
+src/f2py/libspline-f2pywrappers.f
 *.DS_Store

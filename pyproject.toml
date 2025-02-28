@@ -1,0 +1,37 @@
+[build-system]
+build-backend = "mesonpy"
+requires = ["meson-python", "numpy>=1.21"]
+
+[project]
+name = "pyspline"
+description = "pySpline is a package containing code for working with b-spline curve, surface, and volume objects"
+readme = "README.md"
+requires-python = ">=3.7"
+license = { file = "LICENSE.md" }
+dependencies = ["mdolab-baseclasses>=1.8.2", "scipy>=1.7"]
+keywords = ["spline", "b-spline", "optimization"]
+classifiers = [
+    "Operating System :: Linux",
+    "Topic :: Scientific/Engineering",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Fortran",
+    "Programming Language :: Python :: 3",
+]
+# version is dynamically updated by meson
+dynamic = ["version"]
+
+[project.urls]
+Documentation = "https://mdolab-pyspline.readthedocs.io/en/latest/"
+Repository = "https://github.com/mdolab/pyspline.git"
+
+[project.optional-dependencies]
+testing = ["parameterized", "testflo>=1.4.5", "mdolab-baseclasses>=1.6.1"]
+docs = ["sphinx-mdolab-theme>=1.4.2"]
+
+[dependency-groups]
+lint = ["ruff>=0.9.7"]
+typing = ["mypy>=1.4.1"]
+
+[tool.ruff]
+line-length = 120
