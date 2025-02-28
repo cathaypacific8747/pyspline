@@ -62,12 +62,14 @@ fortran_ignore_warnings = ff.get_supported_arguments(
   _fflag_Wno_unused_dummy_argument,
   _fflag_Wno_unused_label,
   _fflag_Wno_unused_variable,
-  _fflag_Wno_tabs,
+  _fflag_Wno_tabs
+)
+fortran_args = ff.get_supported_arguments(
   '-std=f2008',
-  '-fdefault-real-8',
-  '-fdefault-double-8',
   '-fPIC',
-  '-O2'
+  '-O2',
+  '-fdefault-real-8',
+  '-r8', # intel ifx
 )
 
 #
@@ -96,9 +98,11 @@ spline_src = files(
 
 spline_lib = static_library('spline',
   spline_src,
-  fortran_args: fortran_ignore_warnings,
+  fortran_args: fortran_ignore_warnings + fortran_args,
 )
 
+# f2py requires f2cmap to be in the current working directory
+# see https://github.com/mdolab/pyspline/blob/746e1191840461de9a7e7335cc2070a5ebdd39fb/src/f2py/Makefile#L35-L36
 spline_copy_f2cmap = custom_target('copy f2cmap',
   input: 'src/f2py/f2py_f2cmap.ref',
   output:  '.f2py_f2cmap',
