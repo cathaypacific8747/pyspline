@@ -11,7 +11,7 @@ license = { file = "LICENSE.md" }
 dependencies = ["mdolab-baseclasses>=1.8.2", "scipy>=1.7"]
 keywords = ["spline", "b-spline", "optimization"]
 classifiers = [
-    "Operating System :: Linux",
+    "Operating System :: POSIX :: Linux",
     "Topic :: Scientific/Engineering",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
