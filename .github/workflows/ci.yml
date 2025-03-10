@@ -79,8 +79,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # make sure pip does not install an x86_64 version of numpy during the build process.
+      # fixes: `(mach-o file, but is an incompatible architecture (have 'x86_64', need 'arm64e' or 'arm64')`
+      - name: Ensure ARM64 on macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          export ARCHFLAGS="-arch arm64"
+          export LDFLAGS="-arch arm64"
+
       - name: Install the project
-        run: uv venv && uv pip install ".[testing]"
+        run: uv venv && uv pip install ".[testing]" --verbose --no-cache
 
       # adding `--no-editable` to avoid https://github.com/astral-sh/uv/issues/10214
       - name: Run tests
