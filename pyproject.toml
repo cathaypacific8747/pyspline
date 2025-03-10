@@ -34,3 +34,20 @@ lint = ["ruff>=0.9.7"]
 
 [tool.ruff]
 line-length = 120
+
+[tool.cibuildwheel]
+build-frontend = "build[uv]"
+skip = "pp38-*"
+build-verbosity = 3
+test-extras = ["testing"]
+test-command = "uv run --no-editable testflo {project}"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx*x86_64"
+inherit.environment = "append"
+environment.MACOSX_DEPLOYMENT_TARGET = "13.0"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx*arm64"
+inherit.environment = "append"
+environment.MACOSX_DEPLOYMENT_TARGET = "14.0"
