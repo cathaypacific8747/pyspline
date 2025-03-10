@@ -1,4 +1,4 @@
-name: Build wheels and test
+name: Build and test wheels
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
           path: ./dist/*.tar.gz
 
   build_wheels:
-    name: Build wheels on ${{ matrix.build.os }} with ${{ matrix.toolchain.compiler }} (${{ matrix.python }}-${{ matrix.build.platform }}_${{ matrix.build.arch }})
+    name: Wheels for ${{ matrix.build.os }} (${{ matrix.toolchain.compiler }}, ${{ matrix.python }}-${{ matrix.build.platform }}_${{ matrix.build.arch }})
     runs-on: ${{ matrix.build.os }}
     strategy:
       fail-fast: false
@@ -38,39 +38,39 @@ jobs:
           - { os: "ubuntu-22.04-arm", platform: "manylinux", arch: "aarch64" }
           - { os: "macos-13", platform: "macosx", arch: "x86_64" }
           - { os: "macos-14", platform: "macosx", arch: "arm64" }
-          # no support for windows gcc and intel - it compiles successfully but importing it causes lots of DLL load errors
-          # specifically, `libgfortran.DLL` must be in the same directory as the `.pyd`: https://github.com/mesonbuild/meson/issues/11878.
-          # this means we need to either:
-          # - copy the DLLs into the wheel with [delvewheel](https://github.com/adang1345/delvewheel)
-          # - use `os.add_dll_directory()` before library import [like scipy](https://github.com/scipy/scipy/blob/9bc74cd8f4b42016cb85766524df0316d365c97f/tools/openblas_support.py#L228-L264).
-          # however, this adds a lot of complexity and we don't support windows anyway
-          # NOTE: meson also fails to detect intel classic C compiler (https://github.com/mesonbuild/meson/issues/14089), but will be fixed in release 1.8.
+          - { os: "windows-2025", platform: "win", arch: "amd64" }
         toolchain:
           # see https://github.com/fortran-lang/setup-fortran
           - { compiler: gcc, version: 13 }
           - { compiler: intel, version: "2025.0" }
-          # NOTE: intel fortran compiler classic `ifort` is deprecated and discontinued in October 2024 on all platforms
+          # NOTE: intel fortran compiler classic `ifort` is deprecated and discontinued in
+          # October 2024 on all platforms, see: https://community.intel.com/t5/Intel-Fortran-Compiler/Intel-fortran-for-apple-silicon-macs/m-p/1511019#M167530
         exclude:
+          # intel compilers do not support ARM
+          - build: { os: ubuntu-22.04-arm }
+            toolchain: { compiler: intel, version: "2025.0" }
+          - build: { platform: macosx }
+            toolchain: { compiler: intel, version: "2025.0" }
           # macos 14.7.2 with architecture 'arm64' does not have py37, excluding it.
           - python: "cp37"
-            build:
-              platform: "macosx"
-          # `ifx` compiler not supported on macos arm64, excluding it.
-          # also, `ifort` (2021.10, last version) does not support arm64: https://community.intel.com/t5/Intel-Fortran-Compiler/Intel-fortran-for-apple-silicon-macs/m-p/1511019#M167530
-          - build:
-              - os: macos-14
+            build: { platform: macosx }
+          # delvewheel only supports py>=3.8
+          - python: "cp37"
+            build: { platform: win }
+          # upstream meson bug https://github.com/mesonbuild/meson/issues/14089
+          - build: { platform: win }
             toolchain: { compiler: intel, version: "2025.0" }
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup gfortran 13
+      - name: Setup fortran
         uses: fortran-lang/setup-fortran@v1
         id: setup-fortran
         with:
-          compiler: gcc
-          version: 13
+          compiler: ${{ matrix.toolchain.compiler }}
+          version: ${{ matrix.toolchain.version }}
 
       # build frontend
       - name: Install uv
@@ -93,7 +93,6 @@ jobs:
           config-file: "{package}/pyproject.toml"
 
       - uses: actions/upload-artifact@v4
-        if: matrix.toolchain.compiler == 'gcc' # do not upload wheels created by intel binaries
         with:
           path: ./wheelhouse/*.whl
           name: wheels-${{ strategy.job-index }}
@@ -111,7 +110,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: wheels-*
+          pattern: wheels-*gcc* # do not download wheels created by intel ifx
           merge-multiple: true
           path: dist
 

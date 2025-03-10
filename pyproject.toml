@@ -1,6 +1,6 @@
 [build-system]
+requires = ["meson", "meson-python", "numpy>=1.21"]
 build-backend = "mesonpy"
-requires = ["meson-python", "numpy>=1.21"]
 
 [project]
 name = "pyspline"
@@ -12,6 +12,8 @@ dependencies = ["mdolab-baseclasses>=1.8.2", "scipy>=1.7"]
 keywords = ["spline", "b-spline", "optimization"]
 classifiers = [
     "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
     "Topic :: Scientific/Engineering",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
@@ -52,3 +54,12 @@ environment.MACOSX_DEPLOYMENT_TARGET = "13.0"
 select = "*-macosx*arm64"
 inherit.environment = "append"
 environment.MACOSX_DEPLOYMENT_TARGET = "14.0"
+
+[tool.cibuildwheel.windows]
+# on windows, `libgcc_s_seh-1.DLL`, `libgfortran-5.DLL`, `libquadmath-0.DLL`, `libwinpthread.DLL` etc. (provided by the compiler)
+# needs to be present in the directory of the `.pyd` for avoid DLL loading errors.
+# however, meson does not make them available: https://github.com/mesonbuild/meson/issues/11878
+# delvewheel effectively repairs the wheel by copying them in.
+archs = ["AMD64"]
+before-build = "uv pip install delvewheel"
+repair-wheel-command = "delvewheel repair -v --wheel-dir={dest_dir} {wheel}"
