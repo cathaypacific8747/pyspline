@@ -118,11 +118,12 @@ Building with Make and setuptools
 
 While ``pip install .`` is the recommended method, the original build system based on Makefiles is still available. This section provides instructions for building pySpline using Makefiles, which may be helpful for advanced users or for troubleshooting purposes.
 
+
 For speed purposes, pySpline uses a small compiled Fortran library for doing the time consuming computational operations.
 It is therefore necessary to build this library before using pySpline.
 
 pySpline follows the standard MDO Lab build procedure.
-To start, find a configuration file close to your current setup in::
+To start, create a virtual environment with ``numpy`` installed, and find a configuration file close to your current setup in::
 
     config/defaults
 
@@ -154,4 +155,4 @@ Lastly, to build and install the Python interface, type:
 
 .. prompt:: bash
 
-    python3 setup_old.py install
+    python3 setup_deprecated.py install

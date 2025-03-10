@@ -130,6 +130,7 @@ py3.extension_module('libspline',
 
 py3.install_sources(
   [
+    'pyspline/_version.py',
     'pyspline/__init__.py',
     'pyspline/pyCurve.py',
     'pyspline/pySurface.py',

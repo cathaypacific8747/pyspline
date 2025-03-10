@@ -18,8 +18,7 @@ classifiers = [
     "Programming Language :: Fortran",
     "Programming Language :: Python :: 3",
 ]
-# version is dynamically updated by meson
-dynamic = ["version"]
+dynamic = ["version"] # provided by `./meson.build`.
 
 [project.urls]
 Documentation = "https://mdolab-pyspline.readthedocs.io/en/latest/"
@@ -31,15 +30,17 @@ docs = ["sphinx-mdolab-theme>=1.4.2"]
 
 [dependency-groups]
 lint = ["ruff>=0.9.7"]
+# TODO: move testing and docs here once https://github.com/pypa/pip/pull/13065 is stabilised
 
 [tool.ruff]
 line-length = 120
 
 [tool.cibuildwheel]
+skip = "pp* cp36* *_i686 *_ppc64le *_s390x *_armv7l"
 build-frontend = "build[uv]"
-skip = "pp38-*"
 build-verbosity = 3
 test-extras = ["testing"]
+# adding `--no-editable` to avoid https://github.com/astral-sh/uv/issues/10214
 test-command = "uv run --no-editable testflo {project}"
 
 [[tool.cibuildwheel.overrides]]
