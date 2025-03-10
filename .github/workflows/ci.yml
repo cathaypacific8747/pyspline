@@ -17,7 +17,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # dropped support for windows - it compiles successfully but importing it causes lots of DLL load errors
+        # specifically, `libgfortran.DLL` must be in the same directory as the `.pyd`: https://github.com/mesonbuild/meson/issues/11878.
+        # this means we need to either:
+        # - copy the DLLs into the wheel with [delvewheel](https://github.com/adang1345/delvewheel)
+        # - use `os.add_dll_directory()` at runtime [like scipy](https://github.com/scipy/scipy/blob/9bc74cd8f4b42016cb85766524df0316d365c97f/tools/openblas_support.py#L228-L264).
+        # however, this adds a lot of complexity and we don't support windows anyway
+        # NOTE: meson also fails to detect intel classic C compiler (https://github.com/mesonbuild/meson/issues/14089), but will be fixed in release 1.8.
+        os: [ubuntu-latest, macos-latest]
         python-version:
           - "3.7"
           - "3.8"
@@ -32,7 +39,6 @@ jobs:
           - { compiler: intel, version: "2025.0" }
           - { compiler: intel-classic, version: "2021.10" }
         include:
-          # ubuntu 24.04 with architecture 'x64' does not have py37, using ubuntu 22.04 instead.
           - os: ubuntu-22.04
             python-version: "3.7"
             toolchain: { compiler: gcc, version: 13 }
@@ -43,6 +49,7 @@ jobs:
             python-version: "3.7"
             toolchain: { compiler: intel-classic, version: "2021.10" }
         exclude:
+          # ubuntu 24.04 with architecture 'x64' does not have py37, using ubuntu 22.04 instead (as above)
           - os: ubuntu-latest
             python-version: "3.7"
           # macos 14.7.2 with architecture 'arm64' does not have py37, excluding it.
@@ -51,15 +58,6 @@ jobs:
           # `ifx` compiler not supported on macos, excluding it.
           - os: macos-latest
             toolchain: { compiler: intel, version: "2025.0" }
-          # meson fails to detect `icx` C compiler (https://github.com/mesonbuild/meson/issues/14089)
-          # remove the following once meson==1.8 is released.
-          - os: windows-latest
-            toolchain: { compiler: intel, version: "2025.0" }
-          - os: windows-latest
-            toolchain: { compiler: intel-classic, version: "2021.10" }
-          # a bug in meson-python. not supporting it.
-          - os: windows-latest
-            python-version: "3.7"
 
     steps:
       - uses: actions/checkout@v4
@@ -79,16 +77,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # make sure pip does not install an x86_64 version of numpy during the build process.
-      # fixes: `(mach-o file, but is an incompatible architecture (have 'x86_64', need 'arm64e' or 'arm64')`
+      # debug `(mach-o file, but is an incompatible architecture (have 'x86_64', need 'arm64e' or 'arm64')`
       - name: Ensure ARM64 on macOS
         if: matrix.os == 'macos-latest'
         run: |
-          export ARCHFLAGS="-arch arm64"
-          export LDFLAGS="-arch arm64"
+          strace -s 1000 -f -e ifort -V
+          strace -s 1000 -f -e icc -V
 
       - name: Install the project
-        run: uv venv && uv pip install ".[testing]" --verbose --no-cache
+        run: |
+          uv venv
+          uv pip install ".[testing]" --verbose
 
       # adding `--no-editable` to avoid https://github.com/astral-sh/uv/issues/10214
       - name: Run tests
